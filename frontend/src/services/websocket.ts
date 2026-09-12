@@ -10,16 +10,30 @@ export function subscribeToScan(
   scanId: string,
   callbacks: ScanSubscriptionCallbacks
 ): () => void {
-  const baseUrl = (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
-  const wsProtocol = baseUrl.startsWith('https') ? 'wss:' : 'ws:';
-  
-  // Extract host part (e.g., localhost:8001)
+  const raw = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+  let wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   let host = window.location.host;
-  try {
-    const url = new URL(baseUrl);
-    host = url.host;
-  } catch {
-    // fallback to window.location.host
+
+  if (raw) {
+    if (raw.startsWith('https://')) {
+      wsProtocol = 'wss:';
+      try {
+        host = new URL(raw).host;
+      } catch {
+        host = raw.replace(/^https:\/\//, '');
+      }
+    } else if (raw.startsWith('http://')) {
+      wsProtocol = 'ws:';
+      try {
+        host = new URL(raw).host;
+      } catch {
+        host = raw.replace(/^http:\/\//, '');
+      }
+    } else {
+      // Plain hostname e.g. "ledgerly-backend.onrender.com"
+      wsProtocol = 'wss:';
+      host = raw;
+    }
   }
 
   const wsUrl = `${wsProtocol}//${host}/ws/scans/${scanId}`;
