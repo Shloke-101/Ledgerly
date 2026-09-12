@@ -9,14 +9,14 @@ from app.database import Base
 from app.models import Dependency, Repo, Scan, Vulnerability
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", settings.normalized_database_url)
 
 target_metadata = Base.metadata
 
 
 def run_migrations_offline():
     context.configure(
-        url=settings.database_url,
+        url=settings.normalized_database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
